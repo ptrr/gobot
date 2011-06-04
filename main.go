@@ -26,6 +26,9 @@ func ReceiveIRC(_command string, _arguments []string, _message, _nickname string
 			ProcessPING(time)
 		case "PRIVMSG":
 			channel := _arguments[0]
+			if channel == irc.nickname {
+				channel = _nickname
+			}
 			ProcessPRIVMSG(channel, _message, _nickname)
 	}
 }
@@ -38,12 +41,9 @@ func ProcessPRIVMSG(_channel, _message, _nickname string) {
 	matched, error := regexp.MatchString(command, _message)
 	if error == nil {
 		if matched {
-			ProcessCommand(_message, _channel)
+			ProcessCommand(_message, _channel, _nickname)
 		} else {
 			if _message == "herp" {
-				if _channel == irc.nickname {
-					_channel = _nickname
-				}
 				irc.SendPriv(_channel,  "derp")
 			}	
 		}
@@ -52,7 +52,7 @@ func ProcessPRIVMSG(_channel, _message, _nickname string) {
 	}
 }
 
-func ProcessCommand(_message string, _channel string){
+func ProcessCommand(_message string, _channel string, _nickname string){
 	clean := strings.Replace(_message, "!", "", -1)
 	stem := strings.Split(clean, " ", -1);
 	switch stem[0] {
