@@ -41,6 +41,9 @@ func ProcessPRIVMSG(_channel, _message, _nickname string) {
 			ProcessCommand(_message, _channel)
 		} else {
 			if _message == "herp" {
+				if _channel == irc.nickname {
+					_channel = _nickname
+				}
 				irc.SendPriv(_channel,  "derp")
 			}	
 		}
