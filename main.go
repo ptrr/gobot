@@ -9,12 +9,12 @@ var irc *IRC
 const command string = "^![a-z0-9]"
 
 func main() {
-	irc = NewIRC("irc.rizon.net", "6667", "GoB0t10000")
+	irc = NewIRC("irc.rizon.net", "6667", "GoBOT")
 	if success, err := irc.Connect(); !success {
 		println(err)
 		return
 	}
-	irc.SendJoin("#PU_HORSES", "")
+	irc.SendJoin("#pokemon-universe", "")
 	irc.receiveFunc = ReceiveIRC
 	irc.receive()
 }
