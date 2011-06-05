@@ -3,38 +3,56 @@ package main
 import (
 	"strings"
 	"regexp"
+	"http"
+	"os"
+	"fmt"
+	
+	"gotcl"
+	"goirc"
 )
 
-var irc *IRC
+var irc *goirc.IRC
 const command string = "^![a-z0-9]"
 
 func main() {
-	irc = NewIRC("irc.rizon.net", "6667", "GoBOT")
+	TCLTest()
+
+	println("Connecting to irc")
+	irc = goirc.NewIRC("irc.rizon.net", "6667", "DarkGoBOT")
 	if success, err := irc.Connect(); !success {
 		println(err)
 		return
 	}
-	irc.SendJoin("#pokemon-universe", "")
-	irc.receiveFunc = ReceiveIRC
-	irc.receive()
+	irc.SendJoin("#mr_dark", "")
+	irc.ReceiveFunc = ReceiveIRC
+	go irc.Receive()
+	
+	// Just so it doens't shut down
+	http.ListenAndServe(":6543", nil)
+}
+
+func TCLTest() {
+	file, e := os.Open("scripts/derp.tcl")
+	if e != nil {
+		panic(e.String())
+	}
+	defer file.Close()
+	i := gotcl.NewInterp()
+	_, err := i.Run(file)
+	if err != nil {
+		fmt.Println("Error: " + err.String())
+	}
 }
 
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string) {
 	switch _command {
-		case "PING":
-			time := _message
-			ProcessPING(time)
 		case "PRIVMSG":
 			channel := _arguments[0]
-			if channel == irc.nickname {
+			if channel == irc.Nickname {
 				channel = _nickname
 			}
 			ProcessPRIVMSG(channel, _message, _nickname)
 	}
-}
-
-func ProcessPING(_time string) {
-	irc.Send("PONG "+_time+"\r\n")
 }
 
 func ProcessPRIVMSG(_channel, _message, _nickname string) {
