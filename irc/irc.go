@@ -89,7 +89,8 @@ func (i *IRC) preReceiveFunc(_command string, _arguments []string, _message, _ni
 			i.Send("PONG" + time + "\n\r")
 			
 		case "433": //Nickname taken
-			i.SendNick(fmt.Sprintf("%s%d", i.Nickname, i.joinTries))
+			i.Nickname = fmt.Sprintf("%s%d", i.Nickname, i.joinTries)
+			i.SendNick(i.Nickname)
 			i.joinTries++
 			i.JoinChannels()
 			
