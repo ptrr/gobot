@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 	"regexp"
-	"http"
+	//"http"
 	"os"
 	"fmt"
 	
@@ -18,17 +18,17 @@ func main() {
 	TCLTest()
 
 	println("Connecting to irc")
-	irc = goirc.NewIRC("irc.rizon.net", "6667", "DarkGoBOT")
+	irc = goirc.NewIRC("irc.rizon.net", "6667", "StiertjesBot")
 	if success, err := irc.Connect(); !success {
 		println(err)
 		return
 	}
-	irc.SendJoin("#mr_dark", "")
+	irc.AddChannel("#PU_HORSES", "", true)
 	irc.ReceiveFunc = ReceiveIRC
-	go irc.Receive()
+	irc.Receive()
 	
 	// Just so it doens't shut down
-	http.ListenAndServe(":6543", nil)
+	//http.ListenAndServe(":6543", nil)
 }
 
 func TCLTest() {
