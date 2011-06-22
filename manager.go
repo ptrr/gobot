@@ -4,6 +4,9 @@ import (
 	"log"
 	"http"
 	"goirc"
+	"fmt"
+	"strings"
+	"io/ioutil"
 )
 
 var bots map[string]*goirc.IRC = make(map[string]*goirc.IRC)
@@ -16,16 +19,36 @@ func NewManager() *Manager {
 }
 
 func handler(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("This is an example server.\n"))
-	log.Printf("Client connected")
+	file, err := ioutil.ReadFile("html/index.html")
+	text := ""
+	if err == nil {
+		content := string(file)
+		for name, b := range bots {
+			text += "<div class='bot' id='" + name + "'>" + name
+			if b.Connected {
+				text += " <span style='color: green'>Connected</span><button id='but_" + name + "' class='disconnect'>Disconnect</button>"
+			} else {
+				text += " <span style='color: red'>Not connected</span><button id='but_" + name + "' class='connect'>Connect</button>"
+			}
+			text += "</div>"
+		}
+		content = strings.Replace(content, "{{BOTS}}", text, -1)
+		fmt.Fprintf(w, content)
+	}
+}
+
+func SourceHandler(w http.ResponseWriter, r *http.Request) {
+	//log.Printf("IN SOURCE:%s\n", r.URL.Path[1:])
+    http.ServeFile(w, r, r.URL.Path[1:])
+	
 }
 
 func (i *Manager) StartManager() {
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/html/", SourceHandler)
 	http.HandleFunc("/new", NewBot)
 	http.HandleFunc("/create", CreateBot)
-	http.HandleFunc("/init", InitializeBot)
+	http.HandleFunc("/init", InitializeBot)		
+	http.HandleFunc("/", handler)
 	log.Printf("Manager started")
 	err := http.ListenAndServe(":1337", nil);
 	if err != nil {
@@ -33,19 +56,25 @@ func (i *Manager) StartManager() {
 	}
 }
 
+func TestDing(w http.ResponseWriter, req *http.Request) {
+	
+}
+
 func NewBot(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(page))
+	http.ServeFile(w, req, "html/newbot.html")
 }
 
 func CreateBot(w http.ResponseWriter, req *http.Request) {
-	name := req.FormValue("name")
-	server := req.FormValue("server")
-	//channel := req.FormValue("channel")
-	
+	req.ParseForm()
+	name := req.Form["name"][0]
+	server := req.Form["server"][0]
+	channel := req.Form["channel[]"]
 	bot := goirc.NewIRC(server, "6667", name)
+	for _, c := range channel {
+		bot.AddChannel(c, "", false)
+	}
 	bots[name] = bot
-	http.Redirect(w, req, "/", -1)
+	http.Redirect(w, req, "/", http.StatusFound)
 }
 
 func InitializeBot(w http.ResponseWriter, req *http.Request) {
@@ -56,16 +85,7 @@ func InitializeBot(w http.ResponseWriter, req *http.Request) {
 			println(err)
 			return
 		}
-		bot.SendJoin("#PU_HORSES", "")
 		bot.ReceiveFunc = ReceiveIRC
 		go bot.Receive()
 	}
 }
-
-const page = `
-	<form action="/create" method="post">
-Botname: <input type="text" name="name" /><br />
-Server: <input type="text" name="server" /><br />
-Channel: <input type="text" name="channel" /><br />
-<input type="submit" value="Submit" /></form>
-`

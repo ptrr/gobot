@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"regexp"
+	//"http"
+	//"gotcl"
 	"goirc"
 )
 
@@ -14,17 +16,9 @@ const command string = "^![a-z0-9]"
 
 
 func main() {
-	//TCLTest()
-
 	println("Connecting to irc")
-	//irc = goirc.NewIRC("irc.rizon.net", "6667", "PaardHoofd")
 	manager = NewManager()
 	manager.StartManager()
-	
-	
-	
-	// Just so it doens't shut down
-	// http.ListenAndServe(":6543", nil)
 }
 
 /*func TCLTest() {
