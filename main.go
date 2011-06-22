@@ -3,8 +3,6 @@ package main
 import (
 	"strings"
 	"regexp"
-	//"http"
-	//"gotcl"
 	"goirc"
 )
 
@@ -16,23 +14,16 @@ const command string = "^![a-z0-9]"
 
 
 func main() {
+	TCLTest()
+  
 	println("Connecting to irc")
 	manager = NewManager()
 	manager.StartManager()
 }
 
-/*func TCLTest() {
-	file, e := os.Open("scripts/derp.tcl")
-	if e != nil {
-		panic(e.String())
-	}
-	defer file.Close()
-	i := gotcl.NewInterp()
-	_, err := i.Run(file)
-	if err != nil {
-		fmt.Println("Error: " + err.String())
-	}
-}*/
+func TCLTest() {
+	LoadScript("scripts/derp.tcl")
+}
 
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string, _irc *goirc.IRC) {
 	println(_command)
@@ -43,9 +34,13 @@ func ReceiveIRC(_command string, _arguments []string, _message, _nickname string
 			if channel == _irc.Nickname {
 				channel = _nickname
 			}
+			g_scripts.OnPub(_nickname, "", "", channel, _message)
 			ProcessPRIVMSG(channel, _message, _nickname, _irc)
 		case "433":
 			Process443( _irc)
+			
+		case "JOIN":
+			
 	}
 }
 
