@@ -14,15 +14,9 @@ const command string = "^![a-z0-9]"
 
 
 func main() {
-	TCLTest()
-  
 	println("Connecting to irc")
 	manager = NewManager()
 	manager.StartManager()
-}
-
-func TCLTest() {
-	LoadScript("scripts/derp.tcl")
 }
 
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string, _irc *goirc.IRC) {

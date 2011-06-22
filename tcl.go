@@ -2,13 +2,16 @@ package main
 
 import (
 	"gotcl"
+	"goirc"
 	"fmt"
 	"os"
 	"strings"
 )
 
 const (
+	CMD_BIND = "bind"
 	CMD_PUB = "pub"
+	CMD_PUTSERV = "putserv"
 )
 
 var g_scripts *ScriptManager = &ScriptManager{scripts : make([]*Script, 0)}
@@ -61,6 +64,7 @@ func (man *ScriptManager) OnPub(_nickname, _host, _handle, _channel, _text strin
 
 type Script struct {
 	interpreter *gotcl.Interp
+	irc *goirc.IRC
 	filename string
 	binds map[string]*ScriptProc
 }
@@ -76,7 +80,7 @@ func NewScriptProc(_command, _flags, _param, _proc string) *ScriptProc {
 	return &ScriptProc{command : _command, flags : _flags, param : _param, proc : _proc}
 }
 
-func LoadScript(_filename string) *Script{
+func LoadScript(_filename string, _irc *goirc.IRC) *Script{
 	file, err := os.Open(_filename)
 	if err != nil {
 		fmt.Printf("Error loading script %s: %s\n", _filename, err.String())
@@ -86,7 +90,7 @@ func LoadScript(_filename string) *Script{
 	
 	i := gotcl.NewInterp()
 	
-	script := &Script{filename : _filename, interpreter : i, binds : make(map[string]*ScriptProc)}
+	script := &Script{filename : _filename, interpreter : i, binds : make(map[string]*ScriptProc), irc : _irc}
 	
 	LoadScriptCommands(script)
 	
@@ -101,8 +105,13 @@ func LoadScript(_filename string) *Script{
 }
 
 func LoadScriptCommands(_script *Script) {
-	_script.interpreter.SetCmd("bind", func(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclStatus {
+	_script.interpreter.SetCmd(CMD_BIND, func(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclStatus {
 		_script.Cmd_Bind(_i, _args)
+		return 0
+	})
+	
+	_script.interpreter.SetCmd(CMD_PUTSERV, func(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclStatus {
+		_script.Cmd_Putserv(_i, _args)
 		return 0
 	})
 }
@@ -119,6 +128,14 @@ func (s *Script) Cmd_Bind(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclStat
 
 	s.binds[cmd] = NewScriptProc(cmd, flags, param, proc)
 
+	return 0
+}
+
+func (s *Script) Cmd_Putserv(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclStatus {
+	if len(_args) == 1 {
+		msg := _args[0].AsString()
+		s.irc.Send(msg+"\r\n")
+	}
 	return 0
 }
 /*

@@ -9,9 +9,7 @@ proc sumto max {
 }
 
 proc greet { nick uhost hand chan msg } {
-	puts "Derp called: "
-	puts $nick
-	puts $msg
+	putserv "PRIVMSG $chan :yo $nick"
 }
 
 puts [sumto 4]
