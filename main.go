@@ -30,6 +30,9 @@ func ReceiveIRC(_command string, _arguments []string, _message, _nickname string
 			
 		case "JOIN":
 			g_scripts.OnJoin(_nickname, "", "", _message)
+			
+		case "PART":
+			g_scripts.OnPart(_nickname, "", "", _message)
 	}
 }
 

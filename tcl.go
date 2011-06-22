@@ -16,6 +16,7 @@ const (
 const (
 	BIND_PUB = "pub"
 	BIND_JOIN = "join"
+	BIND_PART = "part"
 )
 
 var g_scripts *ScriptManager = &ScriptManager{scripts : make([]*Script, 0)}
@@ -52,6 +53,22 @@ func (man *ScriptManager) OnJoin(_nickname, _host, _handle, _channel string) {
 
 	for _, script := range man.scripts {
 		if sp, contains := script.binds[BIND_JOIN]; contains {
+			if sp.param == _channel {
+				call := fmt.Sprintf("%s %s %s %s %s", sp.proc, _nickname, _host, _handle, _channel)
+				_, err := script.interpreter.EvalString(call)
+				if err != nil {
+					fmt.Printf("Error evaluating OnPub procedure '%s' in %s: %s", sp.proc, script.filename, err.String())
+				}
+			}
+		}
+	}
+}
+
+func (man *ScriptManager) OnPart(_nickname, _host, _handle, _channel string) {
+	man.fillEmptyParams(&_nickname, &_host, &_handle, &_channel)
+
+	for _, script := range man.scripts {
+		if sp, contains := script.binds[BIND_PART]; contains {
 			if sp.param == _channel {
 				call := fmt.Sprintf("%s %s %s %s %s", sp.proc, _nickname, _host, _handle, _channel)
 				_, err := script.interpreter.EvalString(call)
