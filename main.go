@@ -6,12 +6,9 @@ import (
 	"goirc"
 )
 
-var irc *goirc.IRC
 var manager *Manager
 
 const command string = "^![a-z0-9]"
-
-
 
 func main() {
 	println("Connecting to irc")
@@ -20,8 +17,6 @@ func main() {
 }
 
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string, _irc *goirc.IRC) {
-	println(_command)
-	println(_message)
 	switch _command {
 		case "PRIVMSG":
 			channel := _arguments[0]
@@ -34,7 +29,7 @@ func ReceiveIRC(_command string, _arguments []string, _message, _nickname string
 			Process443( _irc)
 			
 		case "JOIN":
-			
+			g_scripts.OnJoin(_nickname, "", "", _message)
 	}
 }
 

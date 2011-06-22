@@ -1,4 +1,5 @@
 bind pub - yo greet
+bind join - #PU_HORSES welcome
 
 proc sumto max {
     set sum 0
@@ -6,6 +7,10 @@ proc sumto max {
         incr sum $i
     }
     return $sum
+}
+
+proc welcome { nick uhost hand chan } {
+	putserv "PRIVMSG $chan :welcome $nick!"
 }
 
 proc greet { nick uhost hand chan msg } {

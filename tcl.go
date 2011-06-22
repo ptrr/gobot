@@ -10,8 +10,12 @@ import (
 
 const (
 	CMD_BIND = "bind"
-	CMD_PUB = "pub"
 	CMD_PUTSERV = "putserv"
+)
+
+const (
+	BIND_PUB = "pub"
+	BIND_JOIN = "join"
 )
 
 var g_scripts *ScriptManager = &ScriptManager{scripts : make([]*Script, 0)}
@@ -25,32 +29,13 @@ func (man *ScriptManager) AddScript(_script *Script) {
 }
 
 func (man *ScriptManager) OnPub(_nickname, _host, _handle, _channel, _text string) {
-	command := _text
-	space := strings.Index(_text, " ")
-	if space != -1 {
-		command = command[0:space]
-	}
+	command := man.firstWord(_text)
 	command = strings.ToLower(command)
-	
-	if len(_nickname) == 0 {
-		_nickname = "-"
-	}
-	if len(_host) == 0 {
-		_host = "-"
-	}
-	if len(_handle) == 0 {
-		_handle = "-"
-	}
-	if len(_channel) == 0 {
-		_channel = "-"
-	}
-	if len(_text) == 0 {
-		_text = "-"
-	}
-	_text = "\"" + _text + "\""
+	man.fillEmptyParams(&_nickname, &_host, &_handle, &_channel, &_text)
+	_text = man.quote(_text)
 	
 	for _, script := range man.scripts {
-		if sp, contains := script.binds[CMD_PUB]; contains {
+		if sp, contains := script.binds[BIND_PUB]; contains {
 			if sp.param == command {
 				call := fmt.Sprintf("%s %s %s %s %s %s", sp.proc, _nickname, _host, _handle, _channel, _text)
 				_, err := script.interpreter.EvalString(call)
@@ -58,6 +43,43 @@ func (man *ScriptManager) OnPub(_nickname, _host, _handle, _channel, _text strin
 					fmt.Printf("Error evaluating OnPub procedure '%s' in %s: %s", sp.proc, script.filename, err.String())
 				}
 			}
+		}
+	}
+}
+
+func (man *ScriptManager) OnJoin(_nickname, _host, _handle, _channel string) {
+	man.fillEmptyParams(&_nickname, &_host, &_handle, &_channel)
+
+	for _, script := range man.scripts {
+		if sp, contains := script.binds[BIND_JOIN]; contains {
+			if sp.param == _channel {
+				call := fmt.Sprintf("%s %s %s %s %s", sp.proc, _nickname, _host, _handle, _channel)
+				_, err := script.interpreter.EvalString(call)
+				if err != nil {
+					fmt.Printf("Error evaluating OnPub procedure '%s' in %s: %s", sp.proc, script.filename, err.String())
+				}
+			}
+		}
+	}
+}
+
+func (man *ScriptManager) quote(_text string) string {
+	return "\"" + _text + "\""
+}
+
+func (man *ScriptManager) firstWord(_text string) (word string) {
+	word = _text
+	space := strings.Index(_text, " ")
+	if space != -1 {
+		word = word[0:space]
+	}
+	return
+}
+
+func (man *ScriptManager) fillEmptyParams(_params ... *string) {
+	for _, param := range _params {
+		if len(*param) == 0 {
+			*param = "-"
 		}
 	}
 }
@@ -138,45 +160,3 @@ func (s *Script) Cmd_Putserv(_i *gotcl.Interp, _args []*gotcl.TclObj) gotcl.TclS
 	}
 	return 0
 }
-/*
-func tclPuts(i *Interp, args []*TclObj) TclStatus {
-	newline := true
-	var s string
-	file := i.chans["stdout"].(io.Writer)
-	if len(args) == 1 {
-		s = args[0].AsString()
-	} else if len(args) == 2 || len(args) == 3 {
-		if args[0].AsString() == "-nonewline" {
-			newline = false
-			args = args[1:]
-		}
-		if len(args) > 1 {
-			outfile, ok := i.chans[args[0].AsString()]
-			if !ok {
-				return i.FailStr("wrong args")
-			}
-			file, ok = outfile.(io.Writer)
-			if !ok {
-				return i.FailStr("channel wasn't opened for writing")
-			}
-			args = args[1:]
-		}
-		s = args[0].AsString()
-	}
-	if newline {
-		fmt.Fprintln(file, s)
-	} else {
-		fmt.Fprint(file, s)
-	}
-	return i.Return(kNil)
-}
-
-
-MSG
-
-bind msg <flags> <command> <proc>
-procname <nick> <user@host> <handle> <text>
-
-Description: used for /msg commands. The first word of the user's msg is the command, and everything else becomes the text argument.
-
-Module: server*/
