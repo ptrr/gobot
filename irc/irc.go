@@ -12,8 +12,8 @@ type IRC struct {
 	socket *net.TCPConn
 	rw *bufio.ReadWriter
 	connected bool
-	ReceiveFunc func(_command string, _arguments []string, _message, _nickname string)
-
+	ReceiveFunc func(_command string, _arguments []string, _message, _nickname string, _bot *IRC)
+	
 	Address, Nickname string
 }
 
@@ -87,7 +87,7 @@ func (i *IRC) preReceiveFunc(_command string, _arguments []string, _message, _ni
 			i.Send("PONG" + time + "\n\r")
 		default:
 			if i.ReceiveFunc != nil {
-				i.ReceiveFunc(_command, _arguments, _message, _nickname)
+				i.ReceiveFunc(_command, _arguments, _message, _nickname, i)
 			}
 	}
 }
