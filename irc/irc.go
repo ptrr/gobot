@@ -23,6 +23,12 @@ func NewIRC(_ip, _port, _nickname string) *IRC {
 	return &IRC{Address : _ip+":"+_port, Nickname : _nickname, channels : make(map[string]string)}
 }
 
+func (i *IRC) Disconnect() {
+	i.SendQuit()
+	i.socket.Close()
+	i.Connected = false
+} 
+
 func (i *IRC) Connect() (bool, string) {
 	var error os.Error
 	sock, error := net.Dial("tcp", i.Address)
@@ -126,6 +132,11 @@ func (i *IRC) SendJoin(_channel, _password string) {
 
 func (i *IRC) SendPriv(_channel, _message string) {
 	msg := "PRIVMSG "+_channel+" :"+_message+"\r\n"
+	i.Send(msg)
+}
+
+func (i *IRC) SendQuit() {
+	msg := "QUIT Bot shut down. \r\n"
 	i.Send(msg)
 }
 

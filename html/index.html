@@ -10,19 +10,37 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="/html/css/style.css?v=2">
 	
-	<script src="/html/js/libs/modernizr-1.7.min.js"></script></head>
+	<script src="/html/js/libs/modernizr-1.7.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/html/js/libs/shadowbox/shadowbox.css">
+	<script type="text/javascript" src="/html/js/libs/shadowbox/shadowbox.js"></script>
+	<script type="text/javascript">
+		Shadowbox.init({
+			players: ['img', 'html', 'iframe']
+		}); 
+	</script></head>
 <body>
+
 	<div id="container">
 		<header>
-
+			<p>Gobot Manager v0.3a</p>
 		</header>
-
+		
+		<div id="controls">
+				<div id="head">
+					<h2>Available bots</h2>
+				</div>
+				<div id="group">
+				{{BOTS}}
+				</div>
+			<a href="/new" rel="shadowbox;width=800px;height=600px;" />+ BOT</a>
+		</div>
+			
 		<div id="main" role="main">
-			{{BOTS}}
+			
 		</div>
 
 		<footer>
-
+			Brought to you by Horsepowered Development &copy; 2011
 		</footer>
 	</div>
 

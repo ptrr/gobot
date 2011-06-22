@@ -24,13 +24,15 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	if err == nil {
 		content := string(file)
 		for name, b := range bots {
-			text += "<div class='bot' id='" + name + "'>" + name
+			text += "<div class='bot' id='" + name + "'><div class='inner'>" + name
 			if b.Connected {
-				text += " <span style='color: green'>Connected</span><button id='but_" + name + "' class='disconnect'>Disconnect</button>"
+				text += " <span style='color: #6add4b;'>Connected</span>"
+				text += "</div><div class='buttons'><button id='but_" + name + "' style='display:none' class='connect'>Connect</button><button  id='but_" + name + "' class='disconnect'>Disconnect</button></div></div>"
 			} else {
-				text += " <span style='color: red'>Not connected</span><button id='but_" + name + "' class='connect'>Connect</button>"
+				text += " <span style='color: #dd4b4b;'>Not connected</span>"
+				text += "</div><div class='buttons'><button id='but_" + name + "' class='connect'>Connect</button><button style='display:none' id='but_" + name + "' class='disconnect'>Disconnect</button></div></div>"
 			}
-			text += "</div>"
+			
 		}
 		content = strings.Replace(content, "{{BOTS}}", text, -1)
 		fmt.Fprintf(w, content)
@@ -48,6 +50,7 @@ func (i *Manager) StartManager() {
 	http.HandleFunc("/new", NewBot)
 	http.HandleFunc("/create", CreateBot)
 	http.HandleFunc("/init", InitializeBot)		
+	http.HandleFunc("/kill", KillBot)		
 	http.HandleFunc("/", handler)
 	log.Printf("Manager started")
 	err := http.ListenAndServe(":1337", nil);
@@ -81,11 +84,22 @@ func InitializeBot(w http.ResponseWriter, req *http.Request) {
 	name := req.FormValue("name")
 	if(bots[name] != nil){
 		bot := bots[name]
-		if success, err := bot.Connect(); !success {
-			println(err)
-			return
+		if !bot.Connected {
+			if success, err := bot.Connect(); !success {
+				println(err)
+				return
+			}
+			bot.ReceiveFunc = ReceiveIRC
+			go bot.Receive()
 		}
-		bot.ReceiveFunc = ReceiveIRC
-		go bot.Receive()
+		
+	}
+}
+
+func KillBot(w http.ResponseWriter, req *http.Request) {
+	name := req.FormValue("name")
+	if(bots[name] != nil){
+		bot := bots[name]
+		bot.Disconnect()
 	}
 }
