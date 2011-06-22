@@ -86,7 +86,7 @@ a:hover { color: #036; }
     \\ ========================================== //
 */
 body{
-	background: url(/html/img/bg.jpg);
+	background: #111;
 	color: #EAEAEA;
 }
 
@@ -101,7 +101,7 @@ header{
 }
 
 #container{
-	background: url(/html/img/bgcenter.jpg) top center no-repeat;
+	
 	min-height: 600px;
 	overflow: auto;
 }
@@ -111,7 +111,7 @@ header{
 	width: 270px;
 	background: #2b2b2b;
 	border-right: 1px solid #444;
-	box-shadow: #000 3px 0px 3px;
+	box-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 }
 
 #controls #head{
@@ -132,11 +132,12 @@ header{
 #group .bot .inner{
  	float: left;
 	width: 70%;
+	padding: 0 0 0 5px;
 }
 
 #group .bot .buttons{
  	float: left;
-	width: 30%;
+	width: 25%;
 	padding: 5px 0 0 0;
 }
 
@@ -159,6 +160,24 @@ header{
 	font-size: 1.2em;
 	padding: 5px;
 }
+#logs{
+	float: right;
+}
+.log{
+-moz-border-radius: 3px;
+-webkit-border-radius: 3px;
+border-radius: 3px;
+box-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+height: 400px;
+margin: 10px;
+background: #2b2b2b;
+border: 1px solid #444;
+clear: both;
+}
+
+#main{
+	overflow: auto;
+}
 
 footer{
 	height: 12px;
@@ -167,6 +186,9 @@ footer{
 	clear: both;
 }
 
+.clear{
+ clear: both;
+}
 
 
 

@@ -13,7 +13,7 @@ $(function(){
 
 function addChannelBox(){
 	$('#plus').click(function(){
-		$('#channels').append('Channel: <input type="text" name="channel[]" /><br />');
+		$('#channels fieldset').append('<div><label>Channel:</label><input type="text" name="channel[]" /></div>');
 	});
 }
 
@@ -23,12 +23,10 @@ function doConnect(){
 		name = $(this).attr("id");
 		name = name.replace("but_", "");
 		//window.location = '/init?name='+name;
-		alert(name + " Connect");
 		$.ajax({
 			url: "/init?name="+name,
   			context: this,
   			success: function(){
-				alert("Connected");
     			$(this).hide();
 				$("#"+name+" button.disconnect").show();
 				$("#"+name+" span").text("Connected");
@@ -45,12 +43,10 @@ function doDisconnect(){
 		name = $(this).attr("id");
 		name = name.replace("but_", "");
 		//window.location = '/init?name='+name;
-		alert(name + " Disconnect");
 		$.ajax({
 			url: "/kill?name="+name,
   			context: this,
   			success: function(){
-				alert("Disconnected");
 				$(this).hide();
 				$("#"+name+" button.connect").show();
 				$("#"+name+" span").text("Not connected");
@@ -62,8 +58,11 @@ function doDisconnect(){
 }
 
 function rsz(){
-	$("#controls").height($(window).height())
+	$("#controls").height($(window).height());
 	$("header").width($(window).width() - $("#controls").width()-11);
+	$("#logs").width($(window).width() - $("#controls").width()-31);
+	$("#main").height($(window).height());
+	$("#main").width($(window).width() - $("#controls").width()-11);
 }
 
  

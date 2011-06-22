@@ -77,7 +77,8 @@ func CreateBot(w http.ResponseWriter, req *http.Request) {
 		bot.AddChannel(c, "", false)
 	}
 	bots[name] = bot
-	http.Redirect(w, req, "/", http.StatusFound)
+	http.ServeFile(w, req, "html/complete.html")
+	//http.Redirect(w, req, "/", http.StatusFound)
 }
 
 func InitializeBot(w http.ResponseWriter, req *http.Request) {
