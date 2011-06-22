@@ -13,5 +13,3 @@ An elaborate bot written in go. =)
 * Live IRC log
 * Log saves
 * Bot edit/configure
-
- 

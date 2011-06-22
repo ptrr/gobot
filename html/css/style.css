@@ -36,7 +36,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0; }
 input, select { vertical-align: middle; }
 
-body { font:13px/1.231 sans-serif; *font-size:small; } 
+body { font:13px/1.231 Georgia, serif; *font-size:small; } 
 select, input, textarea, button { font:99% sans-serif; }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
@@ -66,15 +66,15 @@ input:valid, textarea:valid   {  }
 input:invalid, textarea:invalid { border-radius: 1px; -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red; box-shadow: 0px 0px 5px red; }
 .no-boxshadow input:invalid, .no-boxshadow textarea:invalid { background-color: #f0dddd; }
 
-::-moz-selection{ background: #FF5E99; color:#fff; text-shadow: none; }
-::selection { background:#FF5E99; color:#fff; text-shadow: none; }
+::-moz-selection{ background: #dd4b4b; color:#fff; text-shadow: none; }
+::selection { background:#dd4b4b; color:#fff; text-shadow: none; }
 a:link { -webkit-tap-highlight-color: #FF5E99; }
 
 button {  width: auto; overflow: visible; }
 .ie7 img { -ms-interpolation-mode: bicubic; }
 
 body, select, input, textarea {  color: #444; }
-h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+h1, h2, h3, h4, h5, h6 { font-weight: normal; }
 a, a:active, a:visited { color: #607890; }
 a:hover { color: #036; }
 
@@ -85,10 +85,87 @@ a:hover { color: #036; }
    ||                                              ||
     \\ ========================================== //
 */
+body{
+	background: url(/html/img/bg.jpg);
+	color: #EAEAEA;
+}
 
+h1{
+	font-size: 1.5em;
+}
 
+header{
+	height: 30px;
+	float: right;
+	padding: 0px 0px 0px 10px;
+}
 
+#container{
+	background: url(/html/img/bgcenter.jpg) top center no-repeat;
+	min-height: 600px;
+	overflow: auto;
+}
 
+#controls{
+	float: left;
+	width: 270px;
+	background: #2b2b2b;
+	border-right: 1px solid #444;
+	box-shadow: #000 3px 0px 3px;
+}
+
+#controls #head{
+	border-bottom: 1px solid #444;
+}
+
+#group .bot{
+	border-bottom: 1px solid #444;
+	clear: both;
+	overflow: hidden;
+	height: 35px;
+}
+
+#group .bot:hover{
+	background: #555;
+}
+
+#group .bot .inner{
+ 	float: left;
+	width: 70%;
+}
+
+#group .bot .buttons{
+ 	float: left;
+	width: 30%;
+	padding: 5px 0 0 0;
+}
+
+#group .bot span{
+	clear: left;
+	display: block;
+}
+
+#group .bot button{
+	float: left;
+}
+
+#group .bot .buttons button{
+	padding: 0;
+	float: right;
+	margin-right: 5px;
+}
+
+#controls #head h2{
+	font-size: 1.2em;
+	padding: 5px;
+}
+
+footer{
+	height: 12px;
+	font-size: 10px;
+	padding: 3px;
+	clear: both;
+}
 
 
 
