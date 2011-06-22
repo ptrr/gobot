@@ -1,3 +1,17 @@
-This is a simpel IRC bot made in Golang. 
+# GOBOT
+An elaborate bot written in go. =)
 
-To build it, enter the terminal. Go to the folder and make. 
+
+## Features
+* Ajax webinterface
+* Multiple bots
+* Multiple servers
+* Connect/Disconnect
+
+## Todo
+* TCL scripting on bots
+* Live IRC log
+* Log saves
+* Bot edit/configure
+
+ 
