@@ -76,7 +76,11 @@ func (i *IRC) parseMsg(_text string) {
 		}
 	}
 	parts := strings.Split(msg, " :", 2)
-	if len(parts) > 1 {
+	if len(parts) >= 1 {
+		if len(parts) == 1 {
+			parts[0] = strings.Trim(parts[0], " ")
+			parts = strings.Split(parts[0], " ", 2)
+		}
 		cmd := strings.Trim(parts[0], " ")
 		args := make([]string, 0)
 		cmdparts := strings.Split(cmd, " ", -1)

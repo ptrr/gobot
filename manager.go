@@ -73,6 +73,7 @@ func CreateBot(w http.ResponseWriter, req *http.Request) {
 	server := req.Form["server"][0]
 	channel := req.Form["channel[]"]
 	bot := goirc.NewIRC(server, "6667", name)
+	LoadScript("scripts/derp.tcl", bot)
 	for _, c := range channel {
 		bot.AddChannel(c, "", false)
 	}

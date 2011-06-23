@@ -3,17 +3,12 @@ package main
 import (
 	"strings"
 	"regexp"
-	//"http"
-	//"gotcl"
 	"goirc"
 )
 
-var irc *goirc.IRC
 var manager *Manager
 
 const command string = "^![a-z0-9]"
-
-
 
 func main() {
 	println("Connecting to irc")
@@ -21,31 +16,23 @@ func main() {
 	manager.StartManager()
 }
 
-/*func TCLTest() {
-	file, e := os.Open("scripts/derp.tcl")
-	if e != nil {
-		panic(e.String())
-	}
-	defer file.Close()
-	i := gotcl.NewInterp()
-	_, err := i.Run(file)
-	if err != nil {
-		fmt.Println("Error: " + err.String())
-	}
-}*/
-
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string, _irc *goirc.IRC) {
-	println(_command)
-	println(_message)
 	switch _command {
 		case "PRIVMSG":
 			channel := _arguments[0]
 			if channel == _irc.Nickname {
 				channel = _nickname
 			}
+			g_scripts.OnPub(_nickname, "", "", channel, _message)
 			ProcessPRIVMSG(channel, _message, _nickname, _irc)
 		case "433":
 			Process443( _irc)
+			
+		case "JOIN":
+			g_scripts.OnJoin(_nickname, "", "", _message)
+			
+		case "PART":
+			g_scripts.OnPart(_nickname, "", "", _message)
 	}
 }
 
