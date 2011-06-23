@@ -53,7 +53,7 @@ func (i *Manager) StartManager() {
 	http.HandleFunc("/kill", KillBot)		
 	http.HandleFunc("/", handler)
 	log.Printf("Manager started")
-	err := http.ListenAndServe(":1337", nil);
+	err := http.ListenAndServe(":8080", nil);
 	if err != nil {
 		log.Fatal(err)
 	}
