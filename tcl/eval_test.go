@@ -1,14 +1,14 @@
 package gotcl
 
 import (
-	"testing"
+	"io"
 	"os"
 	"strings"
-	"io"
+	"testing"
 )
 
 func TestFull(t *testing.T) {
-	file, err := os.Open("test.tcl", os.O_RDONLY, 0)
+	file, err := os.Open("test.tcl")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,6 @@ proc fib2 {n} {
 `
 	runCmd(fib2, "fib2 70", b)
 }
-
 
 func BenchmarkSumTo(b *testing.B) {
 	sumto := `

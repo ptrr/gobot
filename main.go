@@ -1,9 +1,9 @@
 package main
 
 import (
-	"strings"
+	"./irc"
 	"regexp"
-	"goirc"
+	"strings"
 )
 
 var manager *Manager
@@ -18,21 +18,18 @@ func main() {
 
 func ReceiveIRC(_command string, _arguments []string, _message, _nickname string, _irc *goirc.IRC) {
 	switch _command {
-		case "PRIVMSG":
-			channel := _arguments[0]
-			if channel == _irc.Nickname {
-				channel = _nickname
-			}
-			g_scripts.OnPub(_nickname, "", "", channel, _message)
-			ProcessPRIVMSG(channel, _message, _nickname, _irc)
-		case "433":
-			Process443( _irc)
-			
-		case "JOIN":
-			g_scripts.OnJoin(_nickname, "", "", _message)
-			
-		case "PART":
-			g_scripts.OnPart(_nickname, "", "", _message)
+	case "PRIVMSG":
+		channel := _arguments[0]
+		if channel == _irc.Nickname {
+			channel = _nickname
+		}
+		ProcessPRIVMSG(channel, _message, _nickname, _irc)
+	case "433":
+		Process443(_irc)
+
+	case "JOIN":
+
+	case "PART":
 	}
 }
 
@@ -49,27 +46,27 @@ func ProcessPRIVMSG(_channel, _message, _nickname string, _irc *goirc.IRC) {
 			ProcessCommand(_message, _channel, _nickname, _irc)
 		} else {
 			if _message == "herp" {
-				_irc.SendPriv(_channel,  "derp")
-			}	
+				_irc.SendPriv(_channel, "derp")
+			}
 		}
 	} else {
-		println("ProcessPRIVMSG error: "+error.String())
+		println("ProcessPRIVMSG error" )
 	}
 }
 
-func ProcessCommand(_message string, _channel string, _nickname string, _irc *goirc.IRC){
+func ProcessCommand(_message string, _channel string, _nickname string, _irc *goirc.IRC) {
 	clean := strings.Replace(_message, "!", "", -1)
-	stem := strings.Split(clean, " ", -1);
+	stem := strings.Split(clean, " ")
 	switch stem[0] {
-		case "kill":
-			if(len(stem) < 2){
-				msg := "PRIVMSG "+_channel+" :No one to kill.\r\n"
-				_irc.Send(msg)
-			} else {
-				msg := "PRIVMSG "+_channel+" :\001ACTION kills "+ stem[1] +"! \001\r\n"
-				_irc.Send(msg)
-			}
-		default : 
-			println("Unknown command")		
+	case "kill":
+		if len(stem) < 2 {
+			msg := "PRIVMSG " + _channel + " :No one to kill.\r\n"
+			_irc.Send(msg)
+		} else {
+			msg := "PRIVMSG " + _channel + " :\001ACTION kills " + stem[1] + "! \001\r\n"
+			_irc.Send(msg)
+		}
+	default:
+		println("Unknown command")
 	}
 }

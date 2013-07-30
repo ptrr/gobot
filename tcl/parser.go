@@ -1,9 +1,9 @@
 package gotcl
 
 import (
-	"io"
-	"os"
 	"bytes"
+	"errors"
+	"io"
 	"unicode"
 )
 
@@ -25,7 +25,7 @@ func isvarword(c int) bool {
 }
 
 func (p *parser) fail(s string) {
-	panic(os.NewError(s))
+	panic(errors.New(s))
 }
 
 func (p *parser) advance() (result int) {
@@ -35,8 +35,8 @@ func (p *parser) advance() (result int) {
 	result = p.ch
 	r, _, e := p.data.ReadRune()
 	if e != nil {
-		if e != os.EOF {
-			p.fail(e.String())
+		if e != io.EOF {
+			p.fail(e.Error())
 		}
 		p.ch = -1
 	} else {
@@ -356,20 +356,20 @@ func (p *parser) parseTokenTil(til int) TclTok {
 	return p.parseSimpleWordTil(til)
 }
 
-func setError(err *os.Error) {
+func setError(err *error) {
 	if e := recover(); e != nil {
-		*err = e.(os.Error)
+		*err = e.(error)
 	}
 }
 
-func ParseList(in io.RuneReader) (items []string, err os.Error) {
+func ParseList(in io.RuneReader) (items []string, err error) {
 	p := newParser(in)
 	defer setError(&err)
 	items = p.parseList()
 	return
 }
 
-func ParseCommands(in io.RuneReader) (cmds []Command, err os.Error) {
+func ParseCommands(in io.RuneReader) (cmds []Command, err error) {
 	p := newParser(in)
 	defer setError(&err)
 	cmds = p.parseCommands()

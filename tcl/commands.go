@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
-	"utf8"
+	"unicode/utf8"
 )
 
 func tclSet(i *Interp, args []*TclObj) TclStatus {
@@ -311,7 +311,7 @@ func tclForeach(i *Interp, args []*TclObj) TclStatus {
 	return i.Return(kNil)
 }
 
-func asInts(a *TclObj, b *TclObj) (ai int, bi int, e os.Error) {
+func asInts(a *TclObj, b *TclObj) (ai int, bi int, e error) {
 	bi, e = b.AsInt()
 	ai, e = a.AsInt()
 	return
@@ -338,7 +338,7 @@ func MakeCmd(fni interface{}) TclCmd {
 			return i.Return(v)
 		}
 
-	case func(*TclObj, *TclObj) (*TclObj, os.Error):
+	case func(*TclObj, *TclObj) (*TclObj, error):
 		return func(i *Interp, args []*TclObj) TclStatus {
 			if len(args) != 2 {
 				return i.FailStr("wrong # args")
@@ -387,7 +387,7 @@ func MakeCmd(fni interface{}) TclCmd {
 			}
 			return it.Return(FromBool(fn(args[0].AsString(), args[1].AsString())))
 		}
-	case func(string) os.Error:
+	case func(string) error:
 		return func(it *Interp, args []*TclObj) TclStatus {
 			if len(args) != 1 {
 				return it.FailStr("wrong # args")
@@ -502,10 +502,10 @@ func tclLappend(i *Interp, args []*TclObj) TclStatus {
 }
 
 func getDuration(i *Interp, code *TclObj) (int64, TclStatus) {
-	start := time.Nanoseconds()
+	start := time.Now()
 	rc := i.EvalObj(code)
-	end := time.Nanoseconds()
-	return (end - start), rc
+	end := time.Now()
+	return (end.Sub(start)), rc
 }
 
 func formatTime(ns int64) string {
@@ -548,7 +548,7 @@ func tclFlush(i *Interp, args []*TclObj) TclStatus {
 		return i.FailStr("no such channel")
 	}
 	if fl, ok := outfile.(interface {
-		Flush() os.Error
+		Flush() error
 	}); ok {
 		fl.Flush()
 	}
@@ -602,7 +602,7 @@ func tclGets(i *Interp, args []*TclObj) TclStatus {
 	str, e := in.ReadString('\n')
 	eof := false
 	if e != nil {
-		if e != os.EOF {
+		if e != io.EOF {
 			return i.Fail(e)
 		}
 		eof = true
@@ -811,7 +811,7 @@ func tclSplit(i *Interp, args []*TclObj) TclStatus {
 	} else if len(args) == 2 {
 		chars := args[1].AsString()
 		if len(chars) == 0 {
-			strs = strings.Split(sin, "", -1)
+			strs = strings.Split(sin, "")
 		} else {
 			strs = splitWith(sin,
 				func(c int) bool { return strings.IndexRune(chars, c) != -1 })

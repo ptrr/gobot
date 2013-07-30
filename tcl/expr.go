@@ -2,9 +2,8 @@ package gotcl
 
 import (
 	"io"
-	"os"
+	"math/rand"
 	"unicode"
-	"rand"
 )
 
 type eterm interface {
@@ -32,7 +31,6 @@ type exprFunc struct {
 	fn             TclCmd
 }
 
-
 func binOpFold(op *binaryOp) TclCmd {
 	return func(i *Interp, args []*TclObj) TclStatus {
 		mval := args[0]
@@ -48,7 +46,6 @@ func binOpFold(op *binaryOp) TclCmd {
 		return i.Return(mval)
 	}
 }
-
 
 func randFn(i *Interp, args []*TclObj) TclStatus {
 	return i.Return(FromInt(rand.Int()))
@@ -158,12 +155,11 @@ func (bb *binOpNode) String() string {
 	return "(" + bb.op.name + " " + bb.a.String() + " " + bb.b.String() + ")"
 }
 
-
-type binOpAct func(*TclObj, *TclObj) (*TclObj, os.Error)
+type binOpAct func(*TclObj, *TclObj) (*TclObj, error)
 type binaryOp struct {
 	name       string
 	precedence int
-	action     func(*TclObj, *TclObj) (*TclObj, os.Error)
+	action     func(*TclObj, *TclObj) (*TclObj, error)
 	special    func(*Interp, eterm, eterm) TclStatus
 }
 
@@ -173,52 +169,52 @@ var binOps = [...]*binaryOp{
 }
 
 var plusOp = &binaryOp{name: "+", precedence: 2,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 + i2), e
 	},
 }
 var minusOp = &binaryOp{name: "-", precedence: 2,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 - i2), e
 	},
 }
 var timesOp = &binaryOp{name: "*", precedence: 3,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 * i2), e
 				}}
 var divideOp = &binaryOp{name: "/", precedence: 3,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 / i2), e
 				}}
 var xorOp = &binaryOp{name: "^", precedence: 3,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 ^ i2), e
 				}}
 var lshiftOp = &binaryOp{name: "<<", precedence: 4,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 << uint(i2)), e
 				}}
 var rshiftOp = &binaryOp{name: ">>", precedence: 4,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromInt(i1 >> uint(i2)), e
 				}}
 var equalsOp = &binaryOp{name: "==", precedence: 1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		return FromBool(a.AsString() == b.AsString()), nil
 					}}
 var notEqualsOp = &binaryOp{name: "!=", precedence: 1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		return FromBool(a.AsString() != b.AsString()), nil
 				}}
 var andOp = &binaryOp{name: "&&", precedence: 0,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		return FromBool(a.AsBool() && b.AsBool()), nil
 	},
 	special: func(i *Interp, a, b eterm) TclStatus {
@@ -235,7 +231,7 @@ var andOp = &binaryOp{name: "&&", precedence: 0,
 	}}
 var orOp = &binaryOp{
 	name: "||", precedence: 0,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		return FromBool(a.AsBool() || b.AsBool()), nil
 	},
 	special: func(i *Interp, a, b eterm) TclStatus {
@@ -252,24 +248,24 @@ var orOp = &binaryOp{
 	}}
 var gtOp = &binaryOp{
 	name: ">", precedence: -1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromBool(i1 > i2), e
 	}}
 var gteOp = &binaryOp{
 	name: ">=", precedence: -1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromBool(i1 >= i2), e
 	}}
 
 var ltOp = &binaryOp{name: "<", precedence: -1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromBool(i1 < i2), e
 				}}
 var lteOp = &binaryOp{name: "<=", precedence: -1,
-	action: func(a, b *TclObj) (*TclObj, os.Error) {
+	action: func(a, b *TclObj) (*TclObj, error) {
 		i1, i2, e := asInts(a, b)
 		return FromBool(i1 <= i2), e
 	}}
@@ -297,7 +293,7 @@ func balance(b *binOpNode) eterm {
 	return b
 }
 
-func parseExpr(in io.RuneReader) (item eterm, err os.Error) {
+func parseExpr(in io.RuneReader) (item eterm, err error) {
 	p := newParser(in)
 	defer setError(&err)
 	item = p.parseExpr()
@@ -467,7 +463,7 @@ func tclExpr(i *Interp, args []*TclObj) TclStatus {
 		return i.FailStr("wrong # args")
 	}
 	var expr eterm
-	var err os.Error
+	var err error
 	if len(args) == 1 {
 		expr, err = args[0].asExpr()
 	} else {

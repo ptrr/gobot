@@ -1,6 +1,6 @@
 package gotcl
 
-import "utf8"
+import "unicode/utf8"
 
 func uncons(s string) (int, string) {
 	head, sz := utf8.DecodeRuneInString(s)

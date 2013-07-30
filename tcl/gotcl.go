@@ -3,6 +3,7 @@ package gotcl
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
 	"os"
 	"strconv"
@@ -14,7 +15,6 @@ type notExpand struct{}
 func (ne notExpand) isExpand() bool {
 	return false
 }
-
 
 type tliteral struct {
 	notExpand
@@ -282,7 +282,7 @@ type Interp struct {
 	chans    map[string]interface{}
 	frame    *stackframe
 	retval   *TclObj
-	err      os.Error
+	err      error
 	cmdcount int
 }
 
@@ -291,13 +291,13 @@ func (i *Interp) Return(val *TclObj) TclStatus {
 	return kTclOK
 }
 
-func (i *Interp) Fail(err os.Error) TclStatus {
+func (i *Interp) Fail(err error) TclStatus {
 	i.err = err
 	return kTclErr
 }
 
 func (i *Interp) FailStr(msg string) TclStatus {
-	return i.Fail(os.NewError(msg))
+	return i.Fail(errors.New(msg))
 }
 
 type TclObj struct {
@@ -309,7 +309,6 @@ type TclObj struct {
 	vrefval    *varRef
 	exprval    eterm
 }
-
 
 func (t *TclObj) AsString() string {
 	if t.value == nil {
@@ -341,11 +340,11 @@ func (t *TclObj) AsString() string {
 	return *t.value
 }
 
-func (t *TclObj) AsInt() (int, os.Error) {
+func (t *TclObj) AsInt() (int, error) {
 	if !t.has_intval {
 		v, e := strconv.Atoi(*t.value)
 		if e != nil {
-			return 0, os.NewError("expected integer but got \"" + *t.value + "\"")
+			return 0, errors.New("expected integer but got \"" + *t.value + "\"")
 		}
 		t.has_intval = true
 		t.intval = v
@@ -353,7 +352,7 @@ func (t *TclObj) AsInt() (int, os.Error) {
 	return t.intval, nil
 }
 
-func (t *TclObj) AsCmds() ([]Command, os.Error) {
+func (t *TclObj) AsCmds() ([]Command, error) {
 	if t.cmdsval == nil {
 		c, e := ParseCommands(strings.NewReader(t.AsString()))
 		if e != nil {
@@ -422,9 +421,9 @@ func FromBool(b bool) *TclObj {
 
 func fromList(items []*TclObj) *TclObj { return &TclObj{listval: items} }
 
-func (t *TclObj) AsList() ([]*TclObj, os.Error) {
+func (t *TclObj) AsList() ([]*TclObj, error) {
 	if t.listval == nil {
-		var e os.Error
+		var e error
 		t.listval, e = parseList(t.AsString())
 		if e != nil {
 			return nil, e
@@ -433,7 +432,7 @@ func (t *TclObj) AsList() ([]*TclObj, os.Error) {
 	return t.listval, nil
 }
 
-func (t *TclObj) asExpr() (eterm, os.Error) {
+func (t *TclObj) asExpr() (eterm, error) {
 	if t.exprval == nil {
 		ev, err := parseExpr(strings.NewReader(t.AsString()))
 		if err != nil {
@@ -444,7 +443,7 @@ func (t *TclObj) asExpr() (eterm, os.Error) {
 	return t.exprval, nil
 }
 
-func parseList(txt string) ([]*TclObj, os.Error) {
+func parseList(txt string) ([]*TclObj, error) {
 	lst, err := ParseList(strings.NewReader(txt))
 	if err != nil {
 		return nil, err
@@ -469,7 +468,7 @@ type argsig struct {
 	def  *TclObj
 }
 
-func (i *Interp) bindArgs(vnames []argsig, args []*TclObj) os.Error {
+func (i *Interp) bindArgs(vnames []argsig, args []*TclObj) error {
 	lastind := len(vnames) - 1
 	var vr varRef
 	for ix, vn := range vnames {
@@ -479,7 +478,7 @@ func (i *Interp) bindArgs(vnames []argsig, args []*TclObj) os.Error {
 			return nil
 		} else if ix >= len(args) {
 			if vn.def == nil {
-				return os.NewError("arg count mismatch")
+				return errors.New("arg count mismatch")
 			}
 			i.SetVar(vr, vn.def)
 		} else {
@@ -559,12 +558,11 @@ type TclCmd func(*Interp, []*TclObj) TclStatus
 
 func (i *Interp) SetCmd(name string, cmd TclCmd) {
 	if cmd == nil {
-		i.cmds[name] = nil, false
+		delete(i.cmds, name)
 	} else {
 		i.cmds[name] = cmd
 	}
 }
-
 
 func (i *Interp) evalCmds(cmds []Command) TclStatus {
 	var res TclStatus
@@ -601,7 +599,7 @@ func (i *Interp) SetVarRaw(name string, val *TclObj) {
 func (i *Interp) SetVar(vr varRef, val *TclObj) TclStatus {
 	m := i.getVarMap(vr.is_global)
 	if val == nil {
-		m[vr.name] = nil, false
+		delete(m, vr.name)
 		return kTclOK
 	}
 	n := vr.name
@@ -636,41 +634,41 @@ func (i *Interp) SetVar(vr varRef, val *TclObj) TclStatus {
 	return kTclOK
 }
 
-func (i *Interp) GetVarRaw(name string) (*TclObj, os.Error) {
+func (i *Interp) GetVarRaw(name string) (*TclObj, error) {
 	return i.GetVar(toVarRef(name))
 }
 
-func (i *Interp) getArray(vr varRef) (*varEntry, os.Error) {
+func (i *Interp) getArray(vr varRef) (*varEntry, error) {
 	v, ok := i.getVarMap(vr.is_global)[vr.name]
 	if !ok {
-		return nil, os.NewError("variable not found: " + vr.String())
+		return nil, errors.New("variable not found: " + vr.String())
 	}
 	for v.link != nil {
 		v, ok = v.link.frame.vars[v.link.name]
 		if !ok {
-			return nil, os.NewError("variable not found: " + vr.String())
+			return nil, errors.New("variable not found: " + vr.String())
 		}
 	}
 	if v.arrdata == nil {
-		return nil, os.NewError("not an array")
+		return nil, errors.New("not an array")
 	}
 	return v, nil
 }
 
-func (i *Interp) GetVar(vr varRef) (*TclObj, os.Error) {
+func (i *Interp) GetVar(vr varRef) (*TclObj, error) {
 	v, ok := i.getVarMap(vr.is_global)[vr.name]
 	if !ok {
-		return nil, os.NewError("variable not found: " + vr.String())
+		return nil, errors.New("variable not found: " + vr.String())
 	}
 	for v.link != nil {
 		v, ok = v.link.frame.vars[v.link.name]
 		if !ok {
-			return nil, os.NewError("variable not found: " + vr.String())
+			return nil, errors.New("variable not found: " + vr.String())
 		}
 	}
 	if vr.arrind != nil {
 		if v.arrdata == nil {
-			return nil, os.NewError("can't get: variable isn't array")
+			return nil, errors.New("can't get: variable isn't array")
 		}
 		if rc := vr.arrind.Eval(i); rc != kTclOK {
 			return nil, i.err
@@ -678,12 +676,12 @@ func (i *Interp) GetVar(vr varRef) (*TclObj, os.Error) {
 		sind := i.retval.AsString()
 		elt, ok := v.arrdata[sind]
 		if !ok {
-			return nil, os.NewError("can't read " + sind + ": no such element in array")
+			return nil, errors.New("can't read " + sind + ": no such element in array")
 		}
 		return elt, nil
 	}
 	if v.arrdata != nil {
-		return nil, os.NewError("can't get: variable is array")
+		return nil, errors.New("can't get: variable is array")
 	}
 	return v.obj, nil
 }
@@ -736,11 +734,11 @@ func (cmd Command) eval(i *Interp) TclStatus {
 	return i.FailStr("command not found: " + fname)
 }
 
-func (i *Interp) EvalString(s string) (*TclObj, os.Error) {
+func (i *Interp) EvalString(s string) (*TclObj, error) {
 	return i.Run(strings.NewReader(s))
 }
 
-func (i *Interp) Run(in io.Reader) (*TclObj, os.Error) {
+func (i *Interp) Run(in io.Reader) (*TclObj, error) {
 	cmds, e := ParseCommands(bufio.NewReader(in))
 	if e != nil {
 		return nil, e
@@ -753,7 +751,7 @@ func (i *Interp) Run(in io.Reader) (*TclObj, os.Error) {
 		return i.retval, nil
 	}
 	if r != kTclOK && i.err == nil {
-		i.err = os.NewError("uncaught error: " + strconv.Itoa(int(r)))
+		i.err = errors.New("uncaught error: " + strconv.Itoa(int(r)))
 	}
 	return nil, i.err
 }

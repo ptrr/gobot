@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
-	"http"
-	"goirc"
 	"fmt"
-	"strings"
+	"./irc"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
 )
 
 var bots map[string]*goirc.IRC = make(map[string]*goirc.IRC)
@@ -32,7 +32,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 				text += " <span style='color: #dd4b4b;'>Not connected</span>"
 				text += "</div><div class='buttons'><button id='but_" + name + "' class='connect'>Connect</button><button style='display:none' id='but_" + name + "' class='disconnect'>Disconnect</button></div></div>"
 			}
-			
+
 		}
 		content = strings.Replace(content, "{{BOTS}}", text, -1)
 		fmt.Fprintf(w, content)
@@ -41,26 +41,26 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 func SourceHandler(w http.ResponseWriter, r *http.Request) {
 	//log.Printf("IN SOURCE:%s\n", r.URL.Path[1:])
-    http.ServeFile(w, r, r.URL.Path[1:])
-	
+	http.ServeFile(w, r, r.URL.Path[1:])
+
 }
 
 func (i *Manager) StartManager() {
 	http.HandleFunc("/html/", SourceHandler)
 	http.HandleFunc("/new", NewBot)
 	http.HandleFunc("/create", CreateBot)
-	http.HandleFunc("/init", InitializeBot)		
-	http.HandleFunc("/kill", KillBot)		
+	http.HandleFunc("/init", InitializeBot)
+	http.HandleFunc("/kill", KillBot)
 	http.HandleFunc("/", handler)
 	log.Printf("Manager started")
-	err := http.ListenAndServe(":8080", nil);
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func TestDing(w http.ResponseWriter, req *http.Request) {
-	
+
 }
 
 func NewBot(w http.ResponseWriter, req *http.Request) {
@@ -73,7 +73,7 @@ func CreateBot(w http.ResponseWriter, req *http.Request) {
 	server := req.Form["server"][0]
 	channel := req.Form["channel[]"]
 	bot := goirc.NewIRC(server, "6667", name)
-	LoadScript("scripts/derp.tcl", bot)
+  //LoadScript("scripts/derp.tcl", bot)
 	for _, c := range channel {
 		bot.AddChannel(c, "", false)
 	}
@@ -84,7 +84,7 @@ func CreateBot(w http.ResponseWriter, req *http.Request) {
 
 func InitializeBot(w http.ResponseWriter, req *http.Request) {
 	name := req.FormValue("name")
-	if(bots[name] != nil){
+	if bots[name] != nil {
 		bot := bots[name]
 		if !bot.Connected {
 			if success, err := bot.Connect(); !success {
@@ -94,13 +94,13 @@ func InitializeBot(w http.ResponseWriter, req *http.Request) {
 			bot.ReceiveFunc = ReceiveIRC
 			go bot.Receive()
 		}
-		
+
 	}
 }
 
 func KillBot(w http.ResponseWriter, req *http.Request) {
 	name := req.FormValue("name")
-	if(bots[name] != nil){
+	if bots[name] != nil {
 		bot := bots[name]
 		bot.Disconnect()
 	}

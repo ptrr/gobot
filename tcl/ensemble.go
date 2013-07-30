@@ -1,9 +1,9 @@
 package gotcl
 
 import (
-	"strings"
-	"sort"
 	"fmt"
+	"sort"
+	"strings"
 )
 
 func formatNames(sv []string) string {
@@ -13,7 +13,7 @@ func formatNames(sv []string) string {
 	if len(sv) == 1 {
 		return sv[0]
 	}
-	sort.SortStrings(sv)
+	sort.Strings(sv)
 	return strings.Join(sv[0:len(sv)-1], ", ") + ", or " + sv[len(sv)-1]
 }
 
